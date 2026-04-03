@@ -32,6 +32,7 @@ export default class SettingsTab {
             display = () => self.display();
             hide = () => self.hide();
         })(app, plugin);
+        (this.tab as any).icon = "type-outline";
         this.updatePrevious();
         dispatcher.dispatch("settings.loaded", new Event({ settings: this.storage.collect() }));
     }

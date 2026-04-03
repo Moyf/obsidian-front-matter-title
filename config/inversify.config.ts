@@ -33,6 +33,7 @@ import FakeTitleElementService from "@src/Utils/FakeTitleElementService";
 import BooleanStrategy from "@src/Components/Extractor/BooleanStrategy";
 import SearchDomWrapperService from "../src/Utils/SearchDomWrapperService";
 import { Delayer, DelayerInterface } from "@src/Components/Delayer/Delayer";
+import SkipSameTitleListener from "@src/Resolver/SkipSameTitleListener";
 
 const Container = new _Container();
 Container.bind<EventDispatcherInterface<any>>(SI["event:dispatcher"]).to(EventDispatcher).inSingletonScope();
@@ -61,6 +62,7 @@ Container.bind(SI["service:note:link"]).to(FileNoteLinkService).inSingletonScope
 Container.bind(SI["service:fake_title_element"]).to(FakeTitleElementService);
 Container.bind<ListenerInterface>(SI.listener).to(BlackWhiteListListener).whenTargetNamed("unnamed");
 Container.bind<ListenerInterface>(SI.listener).to(ProcessorListener).whenTargetNamed("unnamed");
+Container.bind<ListenerInterface>(SI.listener).to(SkipSameTitleListener).whenTargetNamed("unnamed");
 
 Container.load(CreatorModule);
 bindFeature(Container);

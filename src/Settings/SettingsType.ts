@@ -29,11 +29,13 @@ export type SettingsType = {
     rules: {
         paths: { mode: "black" | "white"; values: string[] };
         delimiter: { enabled: boolean; value: string };
+        skipSameTitle: boolean;
     };
     debug: boolean;
     boot: {
         delay: number;
         background: boolean;
+        showNotice: boolean;
     };
     features: SettingsFeature;
 };

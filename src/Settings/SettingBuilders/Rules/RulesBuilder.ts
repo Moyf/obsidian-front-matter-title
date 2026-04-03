@@ -15,7 +15,7 @@ export default class RulesBuiler extends AbstractBuilder<SettingsType, "rules"> 
     }
 
     private get orderedKeys(): (keyof SettingsType["rules"])[] {
-        return ["paths", "delimiter"];
+        return ["paths", "delimiter", "skipSameTitle"];
     }
 
     public doBuild(): void {

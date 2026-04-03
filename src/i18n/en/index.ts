@@ -131,6 +131,10 @@ const en = {
     settings: "Settings for plugin",
     rule: {
         name: "Rules",
+        skip_same_title: {
+            name: "Skip unchanged titles",
+            desc: "When resolved title is identical to file name, skip replacement globally.",
+        },
         path: {
             name: "File path rule",
             black: {
@@ -167,6 +171,10 @@ const en = {
     boot_background: {
         title: "Boot in background",
         desc: "Plugin will be loaded in background to not blocking application",
+    },
+    boot_show_notice: {
+        title: "Show startup notices",
+        desc: "Show plugin startup notices when delayed boot is used.",
     },
     disabled: "Disabled",
     processor: {

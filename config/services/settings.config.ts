@@ -14,18 +14,13 @@ import RulesPathsBuilder from "@src/Settings/SettingBuilders/Rules/RulesPathsBui
 import ProcessorBuilder from "../../src/Settings/SettingBuilders/Processor/ProcessorBuilder";
 import NoteLinkBuilder from "@src/Settings/FeatureBuilder/NoteLinkBuilder";
 import ExplorerBuilder from "@src/Settings/FeatureBuilder/ExplorerBuilder";
+import RulesSkipSameTitleBuilder from "@src/Settings/SettingBuilders/Rules/RulesSkipSameTitleBuilder";
 
 export default (c: Container) => {
     c.bind(SI["settings:feature:builder"]).to(DefaultBuilder).whenTargetNamed("default");
-    c.bind(SI["settings:feature:builder"])
-        .to(AliasBuilder)
-    .whenTargetNamed(Feature.Alias);
-    c.bind(SI["settings:feature:builder"])
-        .to(ExplorerBuilder)
-        .whenTargetNamed(Feature.Explorer);
-    c.bind(SI["settings:feature:builder"])
-        .to(NoteLinkBuilder)
-        .whenTargetNamed(Feature.NoteLink);
+    c.bind(SI["settings:feature:builder"]).to(AliasBuilder).whenTargetNamed(Feature.Alias);
+    c.bind(SI["settings:feature:builder"]).to(ExplorerBuilder).whenTargetNamed(Feature.Explorer);
+    c.bind(SI["settings:feature:builder"]).to(NoteLinkBuilder).whenTargetNamed(Feature.NoteLink);
     c.bind<SettingsFeatureBuildFactory>(SI["factory:settings:feature:builder"]).toFunction((name: string) =>
         c.isBoundNamed(SI["settings:feature:builder"], name) ? c.getNamed(SI["settings:feature:builder"], name) : null
     );
@@ -38,6 +33,7 @@ export default (c: Container) => {
 
     c.bind(SI["settings:builder"]).to(RulesDelimiterBuilder).whenTargetNamed("rules");
     c.bind(SI["settings:builder"]).to(RulesPathsBuilder).whenTargetNamed("rules");
+    c.bind(SI["settings:builder"]).to(RulesSkipSameTitleBuilder).whenTargetNamed("rules");
 
     c.bind<SettingsBuilderFactory>(SI["factory:settings:builder"]).toFunction(name =>
         c.getAllNamed(SI["settings:builder"], name)

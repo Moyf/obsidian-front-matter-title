@@ -63,5 +63,13 @@ export default class UtilBuilder implements SettingBuilderInterface<SettingsType
                     item.get("background").set(e);
                 })
             );
+        new Setting(container)
+            .setName(t("boot_show_notice.title"))
+            .setDesc(t("boot_show_notice.desc"))
+            .addToggle(e =>
+                e.setValue(item.get("showNotice").value()).onChange(value => {
+                    item.get("showNotice").set(value);
+                })
+            );
     }
 }

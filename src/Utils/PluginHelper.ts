@@ -36,11 +36,13 @@ export default class PluginHelper {
                     enabled: false,
                     value: "",
                 },
+                skipSameTitle: true,
             },
             debug: false,
             boot: {
                 delay: 1000,
                 background: true,
+                showNotice: true,
             },
             features: {
                 [Feature.Alias]: {

@@ -119,6 +119,10 @@ const zh: Translation = {
     settings: "插件设置",
     rule: {
         name: "规则",
+        skip_same_title: {
+            name: "标题未变化时跳过",
+            desc: "当解析标题与文件名一致时，全局跳过替换。",
+        },
         path: {
             name: "文件路径规则",
             black: {
@@ -151,6 +155,14 @@ const zh: Translation = {
     boot_delay: {
         title: "延迟启动加载",
         desc: "插件将在指定时间（毫秒）后加载",
+    },
+    boot_background: {
+        title: "后台启动",
+        desc: "在后台加载插件，避免阻塞应用",
+    },
+    boot_show_notice: {
+        title: "显示启动 Notice",
+        desc: "使用延迟启动时，是否显示插件启动 Notice。",
     },
     disabled: "禁用",
     processor: {
