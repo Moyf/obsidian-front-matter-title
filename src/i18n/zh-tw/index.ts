@@ -38,6 +38,10 @@ const zh_tw: Translation = {
         [Feature.Explorer]: {
             name: "檔資源管理器",
             desc: "替換檔資源管理器中顯示的標題",
+            sort: {
+                name: "排序",
+                desc: "按 Explorer 功能中的標題在檔資源管理器中排序",
+            },
         },
         [Feature.Graph]: {
             name: "圖譜",
@@ -79,17 +83,25 @@ const zh_tw: Translation = {
             name: "筆記鏈接",
             desc: "替換筆記中的內部鏈接",
             strategy: {
+                name: "策略",
+                desc: "定義該功能對鏈接執行的處理策略",
                 options: {
                     all: "替換全部鏈接",
                     onlyEmpty: "只替換沒有別名的鏈接",
                 },
             },
             approval: {
+                name: "確認方式",
+                desc: "是否在套用變更前讓插件請求你的確認",
                 options: {
                     showModal: "顯示確認窗口",
                     auto: "使用自動確認",
                 },
             },
+        },
+        [Feature.WindowFrame]: {
+            name: "視窗標題列",
+            desc: "替換視窗標題列中顯示的標題",
         },
     },
     manage: "管理",
@@ -186,6 +198,11 @@ const zh_tw: Translation = {
         },
         function: {
             name: "函數",
+            desc: "將怎樣起作用:",
+            valueDesc: "你在文本區輸入的值",
+        },
+        functionV2: {
+            name: "函數 V2",
             desc: "將怎樣起作用:",
             valueDesc: "你在文本區輸入的值",
         },

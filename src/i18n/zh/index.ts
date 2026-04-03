@@ -38,6 +38,10 @@ const zh: Translation = {
         [Feature.Explorer]: {
             name: "文件资源管理器",
             desc: "替换文件资源管理器中显示的标题",
+            sort: {
+                name: "排序",
+                desc: "按 Explorer 功能中的标题在文件资源管理器中排序",
+            },
         },
         [Feature.Graph]: {
             name: "图谱",
@@ -79,17 +83,25 @@ const zh: Translation = {
             name: "笔记链接",
             desc: "替换笔记中的内部链接",
             strategy: {
+                name: "策略",
+                desc: "定义该功能对链接执行的处理策略",
                 options: {
                     all: "替换全部链接",
                     onlyEmpty: "只替换没有别名的链接",
                 },
             },
             approval: {
+                name: "确认方式",
+                desc: "是否在应用更改前让插件请求你的确认",
                 options: {
                     showModal: "显示确认窗口",
                     auto: "使用自动确认",
                 },
             },
+        },
+        [Feature.WindowFrame]: {
+            name: "窗口标题栏",
+            desc: "替换窗口标题栏中显示的标题",
         },
     },
     manage: "管理",
@@ -186,6 +198,11 @@ const zh: Translation = {
         },
         function: {
             name: "函数",
+            desc: "将怎样起作用:",
+            valueDesc: "你在文本区输入的值",
+        },
+        functionV2: {
+            name: "函数 V2",
             desc: "将怎样起作用:",
             valueDesc: "你在文本区输入的值",
         },
