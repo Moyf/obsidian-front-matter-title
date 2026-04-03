@@ -25,3 +25,6 @@ data.json
 var
 
 *.js
+dist/
+DEVELOPMENT.md
+scripts/copy-to-local.mjs

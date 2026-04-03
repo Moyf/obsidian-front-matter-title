@@ -6,6 +6,8 @@ import EventDispatcherInterface from "../Components/EventDispatcher/Interfaces/E
 import { ResolverEvents } from "./ResolverType";
 import Event from "../Components/EventDispatcher/Event";
 import { CreatorInterface } from "@src/Creator/Interfaces";
+import { ObsidianFileFactory } from "@config/inversify.factory.types";
+import { TFile } from "obsidian";
 
 @injectable()
 export class Resolver implements ResolverDynamicInterface {
@@ -17,7 +19,9 @@ export class Resolver implements ResolverDynamicInterface {
         @inject(SI["creator:creator"])
         private creator: CreatorInterface,
         @inject(SI["event:dispatcher"])
-        private dispatcher: EventDispatcherInterface<ResolverEvents>
+        private dispatcher: EventDispatcherInterface<ResolverEvents>,
+        @inject(SI["factory:obsidian:file"])
+        private fileFactory: ObsidianFileFactory<TFile | null>
     ) {}
 
     setTemplate(template: string): void {
@@ -30,12 +34,27 @@ export class Resolver implements ResolverDynamicInterface {
 
     private get(path: string): string | null {
         try {
-            return this.dispatch(this.creator.create(path, this.template), path) ?? null;
+            const title = this.creator.create(path, this.template);
+            if (this.isSameAsBasename(path, title)) {
+                return null;
+            }
+            return this.dispatch(title, path) ?? null;
         } catch (e) {
             console.error(`Error by path ${path}`, e);
         }
 
         return null;
+    }
+
+    private isSameAsBasename(path: string, title: string | null): boolean {
+        if (!title) {
+            return false;
+        }
+        const file = this.fileFactory(path);
+        if (!file) {
+            return false;
+        }
+        return file.basename.toLowerCase() === title.toLowerCase();
     }
 
     private dispatch(title: string | null, path: string): string | null {
