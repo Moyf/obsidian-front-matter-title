@@ -1,4 +1,4 @@
-import { ApiInterface, DeferInterface } from "front-matter-plugin-api-provider";
+import type { ApiInterface, DeferInterface } from "front-matter-plugin-api-provider";
 import { inject, injectable } from "inversify";
 import SI from "@config/inversify.types";
 import Api from "@src/Components/ApiAdapter/Api";

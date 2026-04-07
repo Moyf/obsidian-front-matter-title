@@ -4,7 +4,7 @@ import FeatureInterface from "@src/Interfaces/FeatureInterface";
 import { SettingsEvent } from "@src/Settings/SettingsType";
 import { CachedMetadata, TAbstractFile, TFile } from "obsidian";
 import { NoteLinkChange } from "./Feature/NoteLink/NoteLinkTypes";
-import { Events } from "../modules/api-provider/src";
+import type { Events } from "front-matter-plugin-api-provider";
 
 export type AppEvents = {
     "migrator:migrated": { from: string; to: string };

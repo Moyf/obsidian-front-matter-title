@@ -20,7 +20,7 @@ import FeatureComposer from "@src/Feature/FeatureComposer";
 import ManagerComposer from "@src/Feature/ManagerComposer";
 import { ObsidianMetaFactory } from "@config/inversify.factory.types";
 import ListenerInterface from "@src/Interfaces/ListenerInterface";
-import { PluginInterface } from "front-matter-plugin-api-provider";
+import type { PluginInterface } from "front-matter-plugin-api-provider";
 import Defer, { DeferFeaturesReady, DeferPluginReady } from "@src/Components/ApiAdapter/Defer";
 import EventDispatcherInterface from "@src/Components/EventDispatcher/Interfaces/EventDispatcherInterface";
 import { t } from "@src/i18n/Locale";
@@ -83,20 +83,22 @@ export default class MetaTitlePlugin extends Plugin implements PluginInterface {
         const background = this.storage.get("boot").get("background").value();
         const showNotice = this.storage.get("boot").get("showNotice").value();
         this.logger.log(`Plugin manual delay ${delay}`);
-        let promise = new Promise(r =>
+        let promise: Promise<void> = new Promise<void>(resolve =>
             setTimeout(() => {
                 this.fc = Container.get(SI["feature:composer"]);
                 this.mc = Container.get(SI["manager:composer"]);
                 this.bind();
                 this.registerCommands();
-                r();
+                resolve();
             }, delay)
         );
         if (delay > 0 && showNotice) {
             new Notice(`[${this.manifest.name}]\nWill be loaded in ${delay}ms. Background: ${background}`);
-            promise = promise.then(() => new Notice(`[${this.manifest.name}]\nLoaded. Background: ${background}`));
+            promise = promise.then(() => {
+                new Notice(`[${this.manifest.name}]\nLoaded. Background: ${background}`);
+            });
         }
-        return background ? null : promise;
+        return background ? Promise.resolve() : promise;
     }
 
     private bindServices(): void {

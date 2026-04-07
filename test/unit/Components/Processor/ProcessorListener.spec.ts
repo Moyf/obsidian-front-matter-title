@@ -118,4 +118,20 @@ describe("Test 'resolver:resolved' listener", () => {
         dispatch(10, "");
         expect(mockProcessor.process).not.toHaveBeenCalled();
     });
+
+    test("Should call FunctionV2 processor even when value is null", () => {
+        const changed = "today";
+        mockProcessor.getType.mockReturnValueOnce(ProcessorTypes.FunctionV2);
+        mockProcessor.process.mockReturnValueOnce(changed);
+        dispatch(null, "/daily/2026-04-07.md");
+        expect(mockProcessor.process).toHaveBeenCalledTimes(1);
+        expect(mockProcessor.process).toHaveBeenCalledWith(
+            JSON.stringify({
+                path: "/daily/2026-04-07.md",
+                title: null,
+                file: null,
+            })
+        );
+        expect(modify).toHaveBeenCalledWith(changed);
+    });
 });
