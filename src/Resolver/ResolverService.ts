@@ -3,6 +3,8 @@ import { NullResolverFactory, ResolverTemplateFactory } from "@src/Resolver/Reso
 import { inject, injectable, named } from "inversify";
 import SI from "../../config/inversify.types";
 import LoggerInterface from "@src/Components/Debug/LoggerInterface";
+import EventDispatcherInterface from "@src/Components/EventDispatcher/Interfaces/EventDispatcherInterface";
+import { SettingsEvent } from "@src/Settings/SettingsType";
 
 @injectable()
 export default class ResolverService implements ResolverServiceInterface {
@@ -15,8 +17,18 @@ export default class ResolverService implements ResolverServiceInterface {
         private templateFactory: ResolverTemplateFactory,
         @inject(SI.logger)
         @named("resolver:service")
-        private logger: LoggerInterface
-    ) {}
+        private logger: LoggerInterface,
+        @inject(SI["event:dispatcher"])
+        private dispatcher: EventDispatcherInterface<SettingsEvent>
+    ) {
+        this.dispatcher.addListener({
+            name: "settings:changed",
+            cb: () => {
+                this.resolvers.clear();
+                this.logger.log("Resolver instance cache cleared due to settings change");
+            },
+        });
+    }
 
     create(template: string): ResolverInterface {
         this.logger.log(`Create "${template}" template`);

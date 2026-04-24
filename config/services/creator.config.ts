@@ -3,6 +3,7 @@ import SI from "../inversify.types";
 import TemplateFactory from "../../src/Creator/Template/Factory";
 import Simple from "../../src/Creator/Template/Simple";
 import MetaPlaceholder from "../../src/Creator/Template/Placeholders/MetaPlaceholder";
+import RawMetaPlaceholder from "../../src/Creator/Template/Placeholders/RawMetaPlaceholder";
 import Creator from "../../src/Creator/Creator";
 import PlaceholderFactory from "../../src/Creator/Template/Placeholders/Factory";
 import Composite from "@src/Creator/Template/Composite";
@@ -25,6 +26,7 @@ export default new ContainerModule(bind => {
     bind<TemplateInterface>(SI["creator:template"]).to(Composite).whenTargetNamed("composite");
 
     bind<TemplatePlaceholderInterface>(SI.placeholder).to(MetaPlaceholder).whenTargetNamed(AbstractPlaceholder.META);
+    bind<TemplatePlaceholderInterface>(SI.placeholder).to(RawMetaPlaceholder).whenTargetNamed(AbstractPlaceholder.RAW_META);
     bind<TemplatePlaceholderInterface>(SI.placeholder).to(FilePlaceholder).whenTargetNamed(AbstractPlaceholder.FILE);
     bind<TemplatePlaceholderInterface>(SI.placeholder)
         .to(BracketsPlaceholder)

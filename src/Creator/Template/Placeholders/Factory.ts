@@ -14,6 +14,8 @@ export default class Factory {
         let type = AbstractPlaceholder.META;
         if (placeholder.startsWith("{{") && placeholder.endsWith("}}")) {
             type = AbstractPlaceholder.BRACKETS;
+        } else if (placeholder.startsWith("@")) {
+            type = AbstractPlaceholder.RAW_META;
         } else if (placeholder.startsWith("_")) {
             type = AbstractPlaceholder.FILE;
         } else if (placeholder === "#heading") {

@@ -4,6 +4,7 @@ import { injectable } from "inversify";
 @injectable()
 export default abstract class AbstractPlaceholder implements TemplatePlaceholderInterface {
     static readonly META: PlaceholderType = "meta";
+    static readonly RAW_META: PlaceholderType = "raw_meta";
     static readonly BRACKETS: PlaceholderType = "brackets";
     static readonly HEADING: PlaceholderType = "heading";
     static readonly FILE: PlaceholderType = "file";

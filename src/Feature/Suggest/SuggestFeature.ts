@@ -6,6 +6,8 @@ import { inject, injectable, interfaces } from "inversify";
 import SI from "@config/inversify.types";
 import FeatureService from "@src/Feature/FeatureService";
 import { ResolverInterface } from "@src/Resolver/Interfaces";
+import { SettingsType } from "@src/Settings/SettingsType";
+import Storage from "@src/Storage/Storage";
 import Newable = interfaces.Newable;
 
 @injectable()
@@ -18,7 +20,9 @@ export default class SuggestFeature extends AbstractFeature<Feature> {
         @inject(SI["newable:obsidian:chooser"])
         chooser: Newable<Chooser>,
         @inject(SI["feature:service"])
-        service: FeatureService
+        service: FeatureService,
+        @inject(SI["settings:storage"])
+        private storage: Storage<SettingsType>
     ) {
         super();
         this.resolver = service.createResolver(this.getId());
@@ -78,6 +82,10 @@ export default class SuggestFeature extends AbstractFeature<Feature> {
                 continue;
             }
             const alias = this.resolver.resolve(item.file.path);
+            const skipSameTitle = this.storage.get("rules").get("skipSameTitle").value();
+            if (alias && skipSameTitle && alias.toLowerCase() === item.file.basename.toLowerCase()) {
+                continue;
+            }
             const value = alias + item.file.path;
             if (alias && !aliases.has(value)) {
                 item.alias = alias;

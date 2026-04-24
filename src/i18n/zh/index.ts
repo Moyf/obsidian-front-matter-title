@@ -117,7 +117,8 @@ const zh: Translation = {
             main: {
                 name: "通用主模板",
                 desc: `设置 yaml 路径，该值将用于文件标题。值必须是字符串或数值。还可以使用类似模板路径 "{{ }}"。
-                还可以使用 #标题 来使用一级标题，或 _ basename 和其他保留字。
+                还可以使用 #标题 来使用一级标题，或 _basename 和其他保留字。
+                使用 @key（如 @title）可获取原始值，不经过处理器后处理。
                 查阅 Readme 了解更多`,
             },
             fallback: {

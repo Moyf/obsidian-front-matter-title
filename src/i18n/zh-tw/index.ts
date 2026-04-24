@@ -117,7 +117,8 @@ const zh_tw: Translation = {
             main: {
                 name: "通用主範本",
                 desc: `設置 yaml 路徑，該值將用於檔標題。值必須是字串或數值。還可以使用類似範本路徑 "{{ }}"。
-                還可以使用 #標題 來使用一級標題，或 _ basename 和其他保留字。
+                還可以使用 #標題 來使用一級標題，或 _basename 和其他保留字。
+                使用 @key（如 @title）可取得原始值，不經過處理器後處理。
                 查閱 Readme 瞭解更多`,
             },
             fallback: {

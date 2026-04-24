@@ -80,7 +80,10 @@ describe("Test 'resolver:resolved' listener", () => {
     const mockProcessor = mock<ProcessorInterface>();
     mockProcessor.getType.mockReturnValue(ProcessorTypes.Replace);
 
-    beforeEach(() => mockProcessor.process.mockClear());
+    beforeEach(() => {
+        mockProcessor.process.mockClear();
+        modify.mockClear();
+    });
     beforeAll(() => {
         mockProcessor.process.mockReturnValue(null);
         mockFactory.mockReturnValueOnce(mockProcessor);
@@ -90,8 +93,8 @@ describe("Test 'resolver:resolved' listener", () => {
         );
     });
     const modify = jest.fn();
-    const dispatch = (value: any, path: string) => {
-        mockDispatcher.dispatch("resolver:resolved", new Event({ modify, value, path }));
+    const dispatch = (value: any, path: string, skipProcessor?: boolean) => {
+        mockDispatcher.dispatch("resolver:resolved", new Event({ modify, value, path, skipProcessor }));
     };
 
     test("Should call processor, but withour modify value", () => {
@@ -117,6 +120,12 @@ describe("Test 'resolver:resolved' listener", () => {
         dispatch(false, "");
         dispatch(10, "");
         expect(mockProcessor.process).not.toHaveBeenCalled();
+    });
+
+    test("Should not call processor when skipProcessor is true", () => {
+        dispatch("foo", "/path/foo", true);
+        expect(mockProcessor.process).not.toHaveBeenCalled();
+        expect(modify).not.toHaveBeenCalled();
     });
 
     test("Should call FunctionV2 processor even when value is null", () => {

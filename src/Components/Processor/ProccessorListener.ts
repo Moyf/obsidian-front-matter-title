@@ -70,6 +70,9 @@ export default class ProcessorListener implements ListenerInterface {
         if (this.processor === null) {
             return;
         }
+        if (obj.skipProcessor) {
+            return;
+        }
         const type = this.processor.getType();
         if (type !== ProcessorTypes.FunctionV2 && typeof obj.value !== "string") {
             return;

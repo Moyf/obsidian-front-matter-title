@@ -39,12 +39,14 @@ export class Resolver implements ResolverDynamicInterface {
     }
 
     private dispatch(title: string | null, path: string): string | null {
+        const skipProcessor = this.template.startsWith("@");
         const event = new Event<ResolverEvents["resolver:resolved"]>({
             value: title,
             modify(v: string) {
                 this.value = v;
             },
             path: path,
+            skipProcessor,
         });
         this.dispatcher.dispatch("resolver:resolved", event);
         return event.get().value ?? null;

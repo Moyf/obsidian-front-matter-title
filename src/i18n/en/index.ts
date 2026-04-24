@@ -117,7 +117,8 @@ const en = {
             main: {
                 name: "Common main template",
                 desc: `Set a yaml path, which value will be used as a file title. Value must be string or numeric. Also you can use template-like path using "{{ }}".
-				Also you can use #heading to use first Heading from a file or _basename and another reserved words. 
+				Also you can use #heading to use first Heading from a file or _basename and another reserved words.
+				Use @key (e.g. @title) to get the raw value without processor post-processing.
 				See Readme to find out more`,
             },
             fallback: {
