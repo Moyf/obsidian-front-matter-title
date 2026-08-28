@@ -13,7 +13,7 @@
     "alias": {
       "enabled": false,
       "strategy": "ensure",
-      "validator": "frontmatterRequired",
+      "validator": "fr",
       "templates": { "main": "", "fallback": "" }
     },
     "explorer": { "enabled": true, "sort": true, "templates": { "main": "", "fallback": "" } },
