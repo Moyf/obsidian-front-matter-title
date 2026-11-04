@@ -62,6 +62,10 @@ const en = {
         [Feature.Suggest]: {
             name: "Suggest",
             desc: "Replace shown titles in suggest modals",
+            insertAlias: {
+                name: "Add title to inserted links",
+                desc: "Use the displayed title as the alias when choosing a file suggestion. Turn off to keep Obsidian's normal link text. Note Link can still rewrite links separately.",
+            },
         },
         [Feature.Tab]: {
             name: "Tabs",

@@ -65,7 +65,7 @@ export default class PluginHelper {
                 [Feature.Graph]: { enabled: false, templates: { main: "", fallback: "" } },
                 [Feature.Bookmarks]: { enabled: false, templates: { main: "", fallback: "" } },
                 [Feature.Search]: { enabled: false, templates: { main: "", fallback: "" } },
-                [Feature.Suggest]: { enabled: false, templates: { main: "", fallback: "" } },
+                [Feature.Suggest]: { enabled: false, insertAlias: true, templates: { main: "", fallback: "" } },
                 [Feature.InlineTitle]: { enabled: false, templates: { main: "", fallback: "" } },
                 [Feature.Canvas]: { enabled: false, templates: { main: "", fallback: "" } },
                 [Feature.Backlink]: { enabled: false, templates: { main: "", fallback: "" } },

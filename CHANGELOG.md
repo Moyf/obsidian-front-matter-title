@@ -8,6 +8,9 @@ At release time, rename `## Unreleased` to the version being released.
 
 ## Unreleased
 
+### Added
+- Suggest can show note titles without adding them as aliases to inserted links (#292).
+
 ### Fixed
 - Explorer titles stay in place when its file list is rebuilt or the workspace changes (#294).
 - Switching between reading and editing modes no longer shows both the filename and title (#295).

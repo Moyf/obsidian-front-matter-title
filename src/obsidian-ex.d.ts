@@ -132,6 +132,11 @@ declare module "obsidian" {
 
     export abstract class Chooser {
         setSuggestions(e: any): any;
+        renderSuggestions(): void;
+        addSuggestion(item: SuggestModalChooserFileItem): void;
+        chooser?: {
+            renderSuggestion(item: SuggestModalChooserFileItem, el: HTMLElement): void;
+        };
     }
 
     export interface SuggestModalChooserFileItem {

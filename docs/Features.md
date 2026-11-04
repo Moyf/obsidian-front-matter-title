@@ -42,6 +42,14 @@ When **Explorer** is on, you can also toggle **Sort** (click **Manage** on the E
 
 > Replace shown titles in suggest modals — the quick switcher, link autocompletion, and similar pop‑ups.
 
+Under **Suggest → Manage**, **Add title to inserted links** controls whether selecting a file
+suggestion adds its displayed title as the link alias, e.g. `[[note|My title]]`. It is on by
+default. Turn it off to keep the readable title in the suggestions while letting Obsidian
+insert its normal link text, e.g. `[[note]]`. Existing aliases chosen explicitly are preserved.
+
+The separate **Note Link** feature can still rewrite links inside your notes. Turn off
+**Note Link** too if you want to prevent that automatic rewriting.
+
 |            Disabled            |            Enabled            |
 |:------------------------------:|:-----------------------------:|
 | ![](img/Suggest%20Off%201.png) | ![](img/Suggest%20On%201.png) |

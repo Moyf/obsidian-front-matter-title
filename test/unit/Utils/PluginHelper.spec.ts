@@ -1,6 +1,26 @@
 import PluginHelper, { CompareOperation } from "@src/Utils/PluginHelper";
+import ObjectHelper from "@src/Utils/ObjectHelper";
+import { Feature } from "@src/Enum";
 
 describe("PluginHelper Test", () => {
+    describe("Suggest alias setting compatibility", () => {
+        beforeAll(() => {
+            (globalThis as any).PLUGIN_VERSION = "test";
+        });
+        it("keeps existing alias insertion behavior for old settings", () => {
+            const settings = ObjectHelper.fillFrom(PluginHelper.createDefaultSettings(), {
+                features: { [Feature.Suggest]: { enabled: true, templates: { main: "title", fallback: "" } } },
+            } as any);
+            expect(settings.features.suggest.insertAlias).toBe(true);
+            expect(settings.features.suggest.enabled).toBe(true);
+        });
+        it("preserves an explicitly disabled alias insertion setting", () => {
+            const settings = ObjectHelper.fillFrom(PluginHelper.createDefaultSettings(), {
+                features: { [Feature.Suggest]: { insertAlias: false } },
+            } as any);
+            expect(settings.features.suggest.insertAlias).toBe(false);
+        });
+    });
     const data: { left: string; right: string; operation: CompareOperation; result: boolean }[] = [
         {
             left: "3.7.1",
