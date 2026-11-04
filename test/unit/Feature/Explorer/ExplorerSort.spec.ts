@@ -57,6 +57,17 @@ describe("ExplorerSort", () => {
             facade.getViewsOfType.mockReturnValue([view]);
         });
 
+        test("uses the new view when restarted after workspace restoration", () => {
+            sort.start();
+            sort.stop();
+            const replacement = mock<TFileExplorerView>();
+            sort.start(replacement);
+            callback(new Event({ id: Feature.Explorer, result: true }));
+
+            expect(view.requestSort).toHaveBeenCalledTimes(1);
+            expect(replacement.requestSort).toHaveBeenCalledTimes(1);
+        });
+
         describe("with explorer item", () => {
             let replacer: FunctionReplacer<TFileExplorerView, "getSortedFolderItems", ExplorerSort>;
             let item: TFileExplorerItem;

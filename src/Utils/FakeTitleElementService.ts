@@ -72,6 +72,12 @@ export default class FakeTitleElementService {
         if (!container) {
             return;
         }
+        const previous = this.elements.get(id);
+        if (previous && (previous.original !== original || previous.fake.parentElement !== container)) {
+            // A mode change can replace the original or discard its fake. Remove
+            // the old binding before reusing the view's id, including its listeners.
+            this.remove(id);
+        }
         let element = this.find(container, id) as T;
         if (element) {
             element.setText(title);

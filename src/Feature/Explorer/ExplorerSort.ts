@@ -50,9 +50,12 @@ export default class ExplorerSort {
         };
     }
 
-    public start(): void {
+    public start(view: TFileExplorerView = null): void {
         if (this.isStarted()) {
             return;
+        }
+        if (view) {
+            this.view = view;
         }
         if (!this.view && (this.initView(), !this.view)) {
             throw new ExplorerViewUndefined();
@@ -76,6 +79,8 @@ export default class ExplorerSort {
         this.refs = [];
         this.replacer?.disable();
         this.view?.requestSort();
+        this.replacer = null;
+        this.view = null;
         this.logger.log("disabled");
     }
 

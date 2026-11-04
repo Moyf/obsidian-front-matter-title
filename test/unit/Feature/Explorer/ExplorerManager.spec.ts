@@ -4,7 +4,6 @@ import ObsidianFacade from "@src/Obsidian/ObsidianFacade";
 import { ExplorerFileItemMutator } from "@src/Feature/Explorer/ExplorerFileItemMutator";
 import ExplorerManager from "../../../../src/Feature/Explorer/ExplorerManager";
 import { ResolverInterface } from "@src/Resolver/Interfaces";
-import ExplorerViewUndefined from "../../../../src/Feature/Explorer/ExplorerViewUndefined";
 import ExplorerSort from "@src/Feature/Explorer/ExplorerSort";
 import EventDispatcherInterface from "@src/Components/EventDispatcher/Interfaces/EventDispatcherInterface";
 import { AppEvents } from "@src/Types";
@@ -51,15 +50,16 @@ describe("ExplorerManager", () => {
         expect(leafMock.isVisible).toHaveBeenCalled();
     });
 
-    it("should throw an error if multiple explorer views are found", () => {
-        facadeMock.getLeavesOfType.mockReturnValue([
-            mock<TFileExplorerLeaf>({ view: mockDeep<TFileExplorerView>() as any }),
-            mock<TFileExplorerLeaf>({ view: mockDeep<TFileExplorerView>() as any }),
-        ]);
+    it("uses a visible explorer when other explorers are hidden", () => {
+        const hidden = mock<TFileExplorerLeaf>();
+        const visible = mock<TFileExplorerLeaf>();
+        visible.isVisible.mockReturnValue(true);
+        visible.view = mock<TFileExplorerView>();
+        facadeMock.getLeavesOfType.mockReturnValue([hidden, visible]);
 
-        expect(() => {
-            explorerManager.enable();
-        }).toThrow("There are some explorers' leaves");
+        explorerManager.enable();
+
+        expect(explorerSortMock.start).toHaveBeenCalledWith(visible.view);
     });
 
     it("should stop the explorer feature", () => {
@@ -128,21 +128,19 @@ describe("ExplorerManager", () => {
         expect(explorerLeafMock.isVisible).toHaveBeenCalled();
     });
 
-    it("should handle the case when the explorer view is undefined", () => {
+    it("waits for an explorer when there is no view yet", () => {
         facadeMock.getLeavesOfType.mockReturnValue([]);
 
-        expect(() => {
-            explorerManager.enable();
-        }).toThrow(ExplorerViewUndefined);
+        expect(() => explorerManager.enable()).not.toThrow();
+        expect(explorerManager.isEnabled()).toBe(true);
+        expect(explorerSortMock.start).not.toHaveBeenCalled();
     });
 
     // Coverage for exceptional cases
-    it("should throw an exception if there is no explorer view", () => {
+    it("ignores a missing explorer leaf during layout restoration", () => {
         facadeMock.getLeavesOfType.mockReturnValue([null]); // No view
 
-        expect(() => {
-            explorerManager.enable();
-        }).toThrow(ExplorerViewUndefined);
+        expect(() => explorerManager.enable()).not.toThrow();
     });
 
     // Testing the restoration of titles

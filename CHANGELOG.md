@@ -9,6 +9,8 @@ At release time, rename `## Unreleased` to the version being released.
 ## Unreleased
 
 ### Fixed
+- Explorer titles stay in place when its file list is rebuilt or the workspace changes (#294).
+- Switching between reading and editing modes no longer shows both the filename and title (#295).
 - Templates such as `title|#heading` now use the heading when the title property is missing,
   including notes without frontmatter (#296).
 

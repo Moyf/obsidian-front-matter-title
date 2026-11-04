@@ -62,6 +62,42 @@ describe("InlineTitleManager", () => {
 
         await manager.refresh();
 
-        expect(service.removeExcept).toHaveBeenCalledWith(["source-inlineTitle-leaf-1"]);
+        expect(service.removeExcept).toHaveBeenCalledWith(["inlineTitle-leaf-1"]);
+    });
+
+    it("keeps one title identity when the reading mode changes (#295)", async () => {
+        const view = createView("note.md", "leaf-1");
+        facade.getViewsOfType.mockReturnValue([view]);
+        resolver.resolve.mockReturnValue("Title");
+        await manager.refresh();
+        const firstId = service.getOrCreate.mock.calls[0][0].id;
+
+        view.getState = () => ({ mode: "preview" });
+        await manager.refresh();
+
+        expect(service.getOrCreate.mock.calls[1][0].id).toBe(firstId);
+        expect(service.removeExcept).toHaveBeenLastCalledWith([firstId]);
+    });
+
+    it("hides the filename again if Obsidian resets its display during a mode change", async () => {
+        const view = createView("note.md", "leaf-1");
+        facade.getViewsOfType.mockReturnValue([view]);
+        resolver.resolve.mockReturnValue("Title");
+        service.getOrCreate.mockReturnValue({ created: false, element: mock<HTMLElement>() });
+
+        await manager.refresh();
+
+        expect(service.setVisible).toHaveBeenCalledWith(expect.any(String), true);
+    });
+
+    it("keeps the filename editable while it is focused", async () => {
+        const view = createView("note.md", "leaf-1");
+        view.inlineTitleEl.isActiveElement = () => true;
+        facade.getViewsOfType.mockReturnValue([view]);
+        resolver.resolve.mockReturnValue("Title");
+
+        await manager.refresh();
+
+        expect(service.setVisible).not.toHaveBeenCalled();
     });
 });

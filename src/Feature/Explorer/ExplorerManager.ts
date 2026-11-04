@@ -4,7 +4,6 @@ import { inject, injectable, named } from "inversify";
 import SI from "@config/inversify.types";
 import ObsidianFacade from "@src/Obsidian/ObsidianFacade";
 import AbstractManager from "@src/Feature/AbstractManager";
-import ExplorerViewUndefined from "@src/Feature/Explorer/ExplorerViewUndefined";
 import { ExplorerFileItemMutator } from "./ExplorerFileItemMutator";
 import { ResolverInterface } from "@src/Resolver/Interfaces";
 import ExplorerSort from "@src/Feature/Explorer/ExplorerSort";
@@ -12,6 +11,8 @@ import { State } from "@src/Feature/Explorer/Types";
 import EventDispatcherInterface from "@src/Components/EventDispatcher/Interfaces/EventDispatcherInterface";
 import { AppEvents } from "@src/Types";
 import LoggerInterface from "@src/Components/Debug/LoggerInterface";
+import ListenerRef from "@src/Components/EventDispatcher/Interfaces/ListenerRef";
+import Event from "@src/Components/EventDispatcher/Event";
 
 @injectable()
 export default class ExplorerManager extends AbstractManager {
@@ -19,6 +20,10 @@ export default class ExplorerManager extends AbstractManager {
     private modified = new WeakMap<TFileExplorerItem, ExplorerFileItemMutator>();
     private state: State = State.Disabled;
     private sort: ExplorerSort = null;
+    private refs: ListenerRef<keyof AppEvents>[] = [];
+    private observer: MutationObserver = null;
+    private refreshTimer: number = null;
+    private treeChanged = false;
 
     constructor(
         @inject(SI["facade:obsidian"])
@@ -44,9 +49,6 @@ export default class ExplorerManager extends AbstractManager {
     private setState(state: State) {
         this.state = state;
     }
-    private isState(state: State): boolean {
-        return this.state === state;
-    }
     getId(): Feature {
         return Feature.Explorer;
     }
@@ -56,36 +58,21 @@ export default class ExplorerManager extends AbstractManager {
     }
 
     protected doDisable() {
+        this.setState(State.Disabled);
+        this.refs.forEach(ref => this.dispatcher.removeListener(ref));
+        this.refs = [];
+        this.treeChanged = false;
+        if (this.refreshTimer !== null) {
+            window.clearTimeout(this.refreshTimer);
+            this.refreshTimer = null;
+        }
+        this.observer?.disconnect();
+        this.observer = null;
         if (this.explorerView) {
             this.restoreTitles();
             this.explorerView = null;
         }
         this.sort?.stop();
-        this.setState(State.Disabled);
-    }
-
-    private tryEnable(): void {
-        this.sort?.start();
-        this.setState(State.Enabled);
-        this.logger.log("Manager enabled");
-    }
-
-    private subscribe(): void {
-        const ref = this.dispatcher.addListener({
-            name: "active:leaf:change",
-            cb: () => {
-                if (this.isEnabled() && this.getExplorerView()) {
-                    this.logger.log("Catch explorer view");
-                    this.tryEnable();
-                    this.doRefresh().catch(e => this.logger.log(e));
-                    this.dispatcher.removeListener(ref);
-                } else if (!this.isEnabled()) {
-                    this.logger.log("Called when is not enabled");
-                    this.dispatcher.removeListener(ref);
-                }
-            },
-        });
-        this.setState(State.WaitForActiveLeaf);
     }
 
     protected doEnable() {
@@ -93,49 +80,99 @@ export default class ExplorerManager extends AbstractManager {
             this.logger.info(`internal plugin ${Plugins.FileExplorer} is not enabled`);
             return;
         }
-        if (!this.getExplorerView()) {
-            this.logger.log("Could not get view. Subscribe and wait for active leaf");
-            this.subscribe();
-        } else {
-            this.tryEnable();
-        }
+        this.setState(State.WaitForActiveLeaf);
+        this.refs = [
+            this.dispatcher.addListener({ name: "layout:change", cb: () => this.queueRefresh() }),
+            this.dispatcher.addListener({ name: "active:leaf:change", cb: () => this.queueRefresh() }),
+        ];
+        this.getExplorerView();
     }
 
     protected async doRefresh(): Promise<{ [p: string]: boolean }> {
-        if (this.isState(State.Enabled)) {
-            return this.updateInternal(Object.values(this.getExplorerFileItems()));
-        }
-        return {};
+        return this.updateInternal(Object.values(this.getExplorerFileItems()));
     }
 
     protected async doUpdate(path: string): Promise<boolean> {
-        if (this.isState(State.Enabled)) {
-            const item = this.getExplorerFileItems()[path];
-            await this.updateInternal(item ? [item] : []);
-            return !!item;
-        }
-        return false;
+        const item = this.getExplorerFileItems()[path];
+        await this.updateInternal(item ? [item] : []);
+        return !!item;
     }
 
     private getExplorerView(): TFileExplorerView | null {
-        if (this.explorerView === null) {
-            const leaves = this.facade.getLeavesOfType<WorkspaceLeafExt>(Leaves.FE);
-
-            if (leaves.length > 1) {
-                throw new Error("There are some explorers' leaves");
-            }
-
-            const leaf = leaves?.[0];
-
-            //TODO: what if it be later?
-            if (leaf === undefined || leaf === null) {
-                throw new ExplorerViewUndefined("Explorer leaf is undefined");
-            }
-            if (leaf.isVisible()) {
-                this.explorerView = leaf.view as TFileExplorerView;
-            }
+        const leaves = this.facade.getLeavesOfType<WorkspaceLeafExt>(Leaves.FE);
+        const view = (leaves.find(leaf => leaf?.isVisible())?.view as TFileExplorerView) ?? null;
+        if (view === this.explorerView) {
+            return view;
         }
-        return this.explorerView;
+        this.observer?.disconnect();
+        this.observer = null;
+        if (this.explorerView) {
+            this.restoreTitles();
+            this.sort?.stop();
+        }
+        this.explorerView = view;
+        this.setState(view ? State.Enabled : State.WaitForActiveLeaf);
+        if (view) {
+            this.sort?.start(view);
+            this.observeTree(view);
+        }
+        return view;
+    }
+
+    private queueRefresh(treeChanged = false): void {
+        if (!this.isEnabled()) {
+            return;
+        }
+        this.treeChanged ||= treeChanged;
+        if (this.refreshTimer !== null) {
+            return;
+        }
+        this.refreshTimer = window.setTimeout(() => {
+            this.refreshTimer = null;
+            const refreshTree = this.treeChanged;
+            this.treeChanged = false;
+            Promise.resolve()
+                .then(async () => {
+                    if (!this.isEnabled()) {
+                        return;
+                    }
+                    const previous = this.explorerView;
+                    this.getExplorerView();
+                    // Normal layout changes should not rerender the whole file list.
+                    if (refreshTree || previous !== this.explorerView) {
+                        await this.refresh();
+                        if (this.isEnabled()) {
+                            this.dispatcher.dispatch("manager:refresh", new Event({ id: Feature.Explorer }));
+                        }
+                    }
+                })
+                .catch(e => this.logger.log(e));
+        }, 0);
+    }
+
+    private observeTree(view: TFileExplorerView): void {
+        const container = view.containerEl;
+        const Observer = container?.ownerDocument?.defaultView?.MutationObserver;
+        if (!Observer) {
+            return;
+        }
+        this.observer = new Observer(records => {
+            // Native tree reloads replace file items without metadata changes.
+            // Ignore title text mutations from our own rendering to avoid a loop.
+            if (
+                records.some(record =>
+                    Array.from(record.addedNodes).some(
+                        node =>
+                            node.nodeType === 1 &&
+                            ((node as Element).matches(".nav-file, .nav-folder") ||
+                                (node as Element).querySelector(".nav-file, .nav-folder"))
+                    )
+                )
+            ) {
+                this.queueRefresh(true);
+            }
+        });
+        this.observer.observe(container, { childList: true, subtree: true });
     }
 
     private getExplorerFileItems(): { [K: string]: TFileExplorerItem } {

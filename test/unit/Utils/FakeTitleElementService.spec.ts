@@ -140,4 +140,48 @@ describe("FakeTitleElementService", () => {
 
         expect(original.listeners).toEqual([]);
     });
+
+    it("removes the previous fake and listeners when Obsidian replaces the original (#295)", () => {
+        const oldFake = service.getOrCreate({
+            original: asElement(original),
+            title: "Old",
+            id: "leaf-1",
+            events: ["click"],
+        }).element as unknown as StubElement;
+        service.setVisible("leaf-1", true);
+        const replacement = new StubElement();
+        container.insertBefore(replacement, original);
+        original.remove();
+
+        const newFake = service.getOrCreate({
+            original: asElement(replacement),
+            title: "New",
+            id: "leaf-1",
+            events: ["click"],
+        }).element as unknown as StubElement;
+        service.setVisible("leaf-1", true);
+
+        expect(newFake).not.toBe(oldFake);
+        expect(container.children).toEqual([newFake, replacement]);
+        expect(original.listeners).toEqual([]);
+        expect(replacement.isHidden()).toBe(true);
+        expect(newFake.textContent).toBe("New");
+        service.removeAll();
+        expect(replacement.listeners).toEqual([]);
+        expect(replacement.isHidden()).toBe(false);
+    });
+
+    it("restores editing handlers when the fake node was removed during a redraw", () => {
+        const fake = service.getOrCreate({
+            original: asElement(original),
+            title: "Title",
+            id: "leaf-1",
+            events: ["click"],
+        }).element as unknown as StubElement;
+        fake.remove();
+
+        service.getOrCreate({ original: asElement(original), title: "Title", id: "leaf-1", events: ["click"] });
+
+        expect(original.listeners.map(([name]) => name)).toEqual(["blur"]);
+    });
 });
