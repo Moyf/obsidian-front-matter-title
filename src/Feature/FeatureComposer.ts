@@ -55,7 +55,7 @@ export default class FeatureComposer {
                 );
                 try {
                     feature.disable();
-                } catch (_) {
+                } catch {
                     /* best-effort rollback */
                 }
                 delete this.features[id];

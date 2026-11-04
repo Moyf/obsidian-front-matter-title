@@ -77,7 +77,7 @@ export default class ExplorerManager extends AbstractManager {
                 if (this.isEnabled() && this.getExplorerView()) {
                     this.logger.log("Catch explorer view");
                     this.tryEnable();
-                    this.doRefresh().catch(this.logger.log);
+                    this.doRefresh().catch(e => this.logger.log(e));
                     this.dispatcher.removeListener(ref);
                 } else if (!this.isEnabled()) {
                     this.logger.log("Called when is not enabled");

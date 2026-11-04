@@ -29,5 +29,17 @@ export default tseslint.config(
             ],
             "no-console": ["error", { allow: ["error", "debug"] }],
         },
+    },
+    {
+        files: ["src/Feature/**/*.ts"],
+        rules: {
+            "no-restricted-syntax": [
+                "error",
+                {
+                    selector: "MethodDefinition[value.async=true][key.name=/^(enable|disable|doEnable|doDisable)$/]",
+                    message: "Feature lifecycle methods must be synchronous so FeatureComposer can catch failures.",
+                },
+            ],
+        },
     }
 );

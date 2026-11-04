@@ -121,7 +121,7 @@ export default class GraphManager extends AbstractManager {
     }
 
     private runBackgroundInit(): void {
-        window.setTimeout(async () => {
+        window.setTimeout(() => {
             this.logger.log("init by backgroundInit");
             this.initReplacement();
         }, 200);

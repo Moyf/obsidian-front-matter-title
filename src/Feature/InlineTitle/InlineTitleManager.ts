@@ -50,7 +50,9 @@ export class InlineTitleManager extends AbstractManager {
     protected doEnable(): void {
         this.ref = this.dispatcher.addListener({
             name: "layout:change",
-            cb: () => this.refresh().catch(console.error),
+            cb: () => {
+                this.refresh().catch(console.error);
+            },
         });
         this.enabled = true;
     }

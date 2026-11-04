@@ -34,13 +34,18 @@ export default class ProcessorBuilder extends AbstractBuilder<SettingsType, "pro
                     "",
                     t("processor.replace.desc"),
                     "title.replace(",
-                    createSpan(
-                        "",
-                        e =>
-                            (e.innerHTML =
-                                "&emsp;new RegExp(<br>&emsp;&emsp;#pattern#, <br>&emsp;&emsp;#flags#<br>&emsp;),")
-                    ),
-                    createSpan("", e => (e.innerHTML = "&emsp;#replacement#")),
+                    // Built as nodes rather than innerHTML; \u2003 is the em space the
+                    // markup used, and the breaks are real <br> elements.
+                    createSpan("", e => {
+                        e.appendText("\u2003new RegExp(");
+                        e.createEl("br");
+                        e.appendText("\u2003\u2003#pattern#, ");
+                        e.createEl("br");
+                        e.appendText("\u2003\u2003#flags#");
+                        e.createEl("br");
+                        e.appendText("\u2003),");
+                    }),
+                    createSpan("", e => e.appendText("\u2003#replacement#")),
                     ")",
                 ];
 

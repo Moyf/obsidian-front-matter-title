@@ -42,7 +42,9 @@ export default class ExplorerSort {
         this.resolver = service.createResolver(Feature.Explorer);
         const trigger = debounce(this.onManagerUpdate.bind(this), 1000);
         this.cb = e => {
-            if (e.id === Feature.Explorer && (e.result === true || e.result === undefined)) {
+            // The public event contract carries the feature id as a plain string, so
+            // compare against the enum's value rather than the member itself.
+            if (e.id === String(Feature.Explorer) && (e.result === true || e.result === undefined)) {
                 trigger();
             }
         };
@@ -165,8 +167,8 @@ export default class ExplorerSort {
             } else if (!i && r) {
                 k = 1;
             } else {
-                const at = i ? a.name : this.resolver.resolve(a.path) ?? a.name;
-                const bt = r ? b.name : this.resolver.resolve(b.path) ?? b.name;
+                const at = i ? a.name : (this.resolver.resolve(a.path) ?? a.name);
+                const bt = r ? b.name : (this.resolver.resolve(b.path) ?? b.name);
                 k = at.localeCompare(bt);
                 k = this.isAsc(sortOrder) ? k : -k;
             }

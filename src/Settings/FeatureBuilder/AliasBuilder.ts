@@ -30,14 +30,14 @@ export default class AliasBuilder extends AbstractBuilder<Feature.Alias> {
             })
             .setValue(value ? value : ValidatorType.FrontmatterRequired)
             .onChange(v => {
-                this.actualizeValidatorDesc(s, v);
+                this.actualizeValidatorDesc(s, v as ValidatorType);
                 this.config.validator = v as ValidatorType;
                 this.dispatchChanges();
             });
-        this.actualizeValidatorDesc(s, this.validatorDropdown.getValue());
+        this.actualizeValidatorDesc(s, this.validatorDropdown.getValue() as ValidatorType);
     }
 
-    private actualizeValidatorDesc(setting: Setting, value: string): void {
+    private actualizeValidatorDesc(setting: Setting, value: ValidatorType): void {
         let text = "";
         switch (value) {
             case ValidatorType.FrontmatterAuto: {
@@ -63,14 +63,14 @@ export default class AliasBuilder extends AbstractBuilder<Feature.Alias> {
             })
             .setValue(value ? value : StrategyType.Ensure)
             .onChange(v => {
-                this.actualizeStrategyDesc(s, v);
+                this.actualizeStrategyDesc(s, v as StrategyType);
                 this.options.config.strategy = v as StrategyType;
                 this.dispatchChanges();
             });
-        this.actualizeStrategyDesc(s, this.strategyDropdown.getValue());
+        this.actualizeStrategyDesc(s, this.strategyDropdown.getValue() as StrategyType);
     }
 
-    private actualizeStrategyDesc(setting: Setting, value: string): void {
+    private actualizeStrategyDesc(setting: Setting, value: StrategyType): void {
         let desc = "";
         switch (value) {
             case StrategyType.Ensure:

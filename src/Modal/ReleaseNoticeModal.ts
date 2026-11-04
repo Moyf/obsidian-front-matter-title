@@ -13,7 +13,10 @@ const ISSUES_URL = "https://github.com/snezhig/obsidian-front-matter-title/issue
 export default class ReleaseNoticeModal extends Modal {
     private readonly component = new Component();
 
-    constructor(app: App, private version: string) {
+    constructor(
+        app: App,
+        private version: string
+    ) {
         super(app);
     }
 
@@ -24,7 +27,9 @@ export default class ReleaseNoticeModal extends Modal {
         const whatsNew = typeof PLUGIN_WHATS_NEW === "string" ? PLUGIN_WHATS_NEW.trim() : "";
         this.component.load();
         const body = contentEl.createDiv();
-        MarkdownRenderer.render(this.app, whatsNew || `Updated to ${this.version}.`, body, "", this.component);
+        MarkdownRenderer.render(this.app, whatsNew || `Updated to ${this.version}.`, body, "", this.component).catch(
+            console.error
+        );
 
         contentEl.createEl("hr");
         contentEl.createEl("p", {

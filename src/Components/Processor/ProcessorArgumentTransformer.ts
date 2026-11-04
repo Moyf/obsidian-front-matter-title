@@ -15,7 +15,7 @@ export default class ProcessorArgumentTransformer {
                     path: event.get().path,
                     title: event.get().value,
                     file: null,
-                } as FunctionV2ObjArg);
+                } satisfies FunctionV2ObjArg);
         }
     }
 }

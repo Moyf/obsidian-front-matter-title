@@ -41,7 +41,7 @@ type DotNot<T> = T extends string
 const defaultLocale = "en";
 const locale = moment.locale();
 
-i18next.init({
+void i18next.init({
     lng: locale,
     fallbackLng: defaultLocale,
     resources: {

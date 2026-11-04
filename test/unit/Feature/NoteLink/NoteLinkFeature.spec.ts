@@ -71,7 +71,10 @@ test("Should request changes and execute them", async () => {
     mockFacade.getFileContent.mockResolvedValueOnce(content);
     mockFacade.modifyFile.mockResolvedValueOnce();
 
-    await callbacks["metadata:cache:changed"].cb(new Event({ path, cache: mock<CachedMetadata>() }));
+    callbacks["metadata:cache:changed"].cb(new Event({ path, cache: mock<CachedMetadata>() }));
+    // The listener starts the work but no longer returns its promise, so give the
+    // chain a turn to settle before asserting.
+    await new Promise(resolve => setImmediate(resolve));
     expect(mockService.getNoteLinks).toHaveBeenCalledWith(path);
     expect(mockApprove.request).toHaveBeenCalledWith(path, [
         { original: links.bar.original, replace: `[[${links.bar.link}|bar-resolved]]` },
@@ -79,4 +82,22 @@ test("Should request changes and execute them", async () => {
     expect(mockFacade.getTFile).toHaveBeenCalledWith(path);
     expect(mockFacade.getFileContent).toHaveBeenCalledWith(mockFile);
     expect(mockFacade.modifyFile).toHaveBeenCalledWith(mockFile, expectedContent);
+});
+
+test("Reports a rejected approval request without writing the file", async () => {
+    const error = new Error("approval unavailable");
+    mockService.getNoteLinks.mockReturnValueOnce([
+        { alias: "", dest: "bar", link: "bar-link", original: "[[bar-link]]" },
+    ]);
+    mockApprove.request.mockRejectedValueOnce(error);
+    mockFacade.modifyFile.mockClear();
+    const spy = jest.spyOn(console, "error").mockImplementation(() => undefined);
+    try {
+        callbacks["metadata:cache:changed"].cb(new Event({ path: "note.md", cache: mock<CachedMetadata>() }));
+        await new Promise(resolve => setImmediate(resolve));
+        expect(spy).toHaveBeenCalledWith(error);
+        expect(mockFacade.modifyFile).not.toHaveBeenCalled();
+    } finally {
+        spy.mockRestore();
+    }
 });

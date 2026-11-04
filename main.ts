@@ -81,7 +81,7 @@ export default class MetaTitlePlugin extends Plugin implements PluginInterface {
         const loaded = await this.loadData();
         // Remember the previously installed version (null on a fresh install) to
         // decide whether to show the "what's new" notice after an update.
-        this.previousVersion = loaded ? loaded.version ?? "0.0.0" : null;
+        this.previousVersion = loaded ? (loaded.version ?? "0.0.0") : null;
         if (loaded && !loaded.version) {
             loaded.version = "0.0.0";
         }
@@ -176,10 +176,17 @@ export default class MetaTitlePlugin extends Plugin implements PluginInterface {
         });
         this.dispatcher.addListener({
             name: "resolver:unresolved",
-            cb: e => this.mc.update(e.get().path).catch(console.error),
+            cb: e => {
+                this.mc.update(e.get().path).catch(console.error);
+            },
         });
 
-        this.dispatcher.addListener({ name: "settings:changed", cb: e => this.onSettingsChange(e.get().actual) });
+        this.dispatcher.addListener({
+            name: "settings:changed",
+            cb: e => {
+                this.onSettingsChange(e.get().actual).catch(console.error);
+            },
+        });
     }
 
     private reloadFeatures(): void {
