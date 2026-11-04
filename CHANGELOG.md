@@ -6,12 +6,13 @@ compare link. Headings must be `## X.Y.Z` (the version, no `v`) so CI can find t
 
 At release time, rename `## Unreleased` to the version being released.
 
-## Unreleased
+## 4.3.0
 
 ### Added
 - Suggest can show note titles without adding them as aliases to inserted links (#292).
 
 ### Fixed
+- Canvas titles update more reliably when cards load or the plugin is reloaded.
 - Explorer titles stay in place when its file list is rebuilt or the workspace changes (#294).
 - Switching between reading and editing modes no longer shows both the filename and title (#295).
 - Templates such as `title|#heading` now use the heading when the title property is missing,
