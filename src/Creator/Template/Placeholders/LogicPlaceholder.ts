@@ -2,6 +2,7 @@ import { inject, injectable } from "inversify";
 import { TemplatePlaceholderFactoryInterface, TemplatePlaceholderInterface } from "@src/Creator/Interfaces";
 import Factory from "@src/Creator/Template/Placeholders/Factory";
 import SI from "@config/inversify.types";
+import PathNotFoundException from "@src/Components/Extractor/Exceptions/PathNotFoundException";
 
 @injectable()
 export default class LogicPlaceholder implements TemplatePlaceholderInterface {
@@ -16,11 +17,20 @@ export default class LogicPlaceholder implements TemplatePlaceholderInterface {
 
     makeValue(path: string): string | null {
         for (const child of this.children) {
-            const value = child.makeValue(path);
-            if (value) {
-                return value;
+            try {
+                const value = child.makeValue(path);
+                if (value) {
+                    return value;
+                }
+            } catch (e) {
+                // A missing property is an unavailable alternative, just like an
+                // empty value. Let other errors reach the normal error handler.
+                if (!(e instanceof PathNotFoundException)) {
+                    throw e;
+                }
             }
         }
+        return null;
     }
 
     setPlaceholder(placeholder: string): TemplatePlaceholderInterface {

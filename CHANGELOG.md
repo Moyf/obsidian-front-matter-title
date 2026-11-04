@@ -6,6 +6,12 @@ compare link. Headings must be `## X.Y.Z` (the version, no `v`) so CI can find t
 
 At release time, rename `## Unreleased` to the version being released.
 
+## Unreleased
+
+### Fixed
+- Templates such as `title|#heading` now use the heading when the title property is missing,
+  including notes without frontmatter (#296).
+
 ## 4.2.0
 
 ### Added
