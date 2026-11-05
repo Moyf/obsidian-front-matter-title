@@ -13,10 +13,7 @@ const ISSUES_URL = "https://github.com/snezhig/obsidian-front-matter-title/issue
 export default class ReleaseNoticeModal extends Modal {
     private readonly component = new Component();
 
-    constructor(
-        app: App,
-        private version: string
-    ) {
+    constructor(app: App, private version: string) {
         super(app);
     }
 

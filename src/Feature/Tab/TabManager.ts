@@ -97,7 +97,7 @@ export default class TabManager extends AbstractManager {
             this,
             function (self, _args, vanilla) {
                 const filePath = this?.view?.file?.path ?? (this?.view?.getState?.() ?? {}).file ?? null;
-                return filePath ? (self.resolver.resolve(filePath) ?? vanilla.call(this)) : vanilla.call(this);
+                return filePath ? self.resolver.resolve(filePath) ?? vanilla.call(this) : vanilla.call(this);
             }
         );
         this.replacerDisplayText?.enable();

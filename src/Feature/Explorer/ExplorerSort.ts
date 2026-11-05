@@ -172,8 +172,8 @@ export default class ExplorerSort {
             } else if (!i && r) {
                 k = 1;
             } else {
-                const at = i ? a.name : (this.resolver.resolve(a.path) ?? a.name);
-                const bt = r ? b.name : (this.resolver.resolve(b.path) ?? b.name);
+                const at = i ? a.name : this.resolver.resolve(a.path) ?? a.name;
+                const bt = r ? b.name : this.resolver.resolve(b.path) ?? b.name;
                 k = at.localeCompare(bt);
                 k = this.isAsc(sortOrder) ? k : -k;
             }
