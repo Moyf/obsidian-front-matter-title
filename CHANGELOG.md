@@ -1,0 +1,74 @@
+# Changelog
+
+Notable changes per release. The release workflow publishes the section matching
+the released version as the GitHub Release notes, then appends a "Full Changelog"
+compare link. Headings must be `## X.Y.Z` (the version, no `v`) so CI can find them.
+
+At release time, rename `## Unreleased` to the version being released.
+
+## 4.3.0
+
+### Added
+- Suggest can show note titles without adding them as aliases to inserted links (#292).
+
+### Fixed
+- Canvas titles update more reliably when cards load or the plugin is reloaded.
+- Explorer titles stay in place when its file list is rebuilt or the workspace changes (#294).
+- Switching between reading and editing modes no longer shows both the filename and title (#295).
+- Templates such as `title|#heading` now use the heading when the title property is missing,
+  including notes without frontmatter (#296).
+
+## 4.2.0
+
+### Added
+- New `#h1` to `#h6` template placeholders take the first heading of that exact level.
+  For example, `#h1` uses only the H1 and falls back when the note has none. `#heading`
+  still takes the first heading of any level (#286).
+
+### Fixed
+- The note title no longer disappears when an image (or any other file) is added to the
+  vault while a note is open. Adding a file made the plugin drop the title of every open
+  note and leave nothing in its place until a reload (#285).
+
+## 4.1.1
+
+### Fixed
+- The note title and the file name no longer appear together at the top of a note. This
+  happened with themes that style the inline title, such as anuPpuccin. Now only the note
+  title is shown (#280, #234, #123).
+
+## 4.1.0
+
+### Added
+- Note titles now also show under "Unlinked mentions" in the backlinks panel (#190).
+
+### Fixed
+- Files added from outside Obsidian (e.g. via sync) now get their title in the file
+  explorer right away, without needing a reload (#250).
+- Bookmarked files placed inside a group now show their title (#257).
+- Composite templates now work with non-Latin frontmatter keys, such as Chinese (#256).
+- Tab titles are no longer lost when switching between tabs (#248, #277).
+- Fixed a crash that could leave the interface blank after switching a workspace that has
+  pinned tabs (#251).
+
+### Changed
+- The "loading" notifications on startup now only appear in Debug mode (#270).
+
+## 4.0.0
+
+### Added
+- After the plugin updates, a short note pops up explaining what changed and where the
+  project stands.
+
+### Fixed
+- Sorting the file explorer by created or modified date works again. Before, turning the
+  plugin on left you stuck with name sorting only (#262).
+
+### Changed
+- The plugin is more robust when Obsidian updates. If a new Obsidian version changes
+  something a feature depends on, only that one feature turns off (with a short notice)
+  instead of the whole plugin breaking or showing a blank screen (#233, #251).
+
+### Internal
+- Added a Docker-based dev/test setup and end-to-end tests that run against a real Obsidian,
+  fixed a build error, and fixed cloning the plugin's submodule (#273).

@@ -8,6 +8,7 @@ type SettingsFeatureSpecific = {
     [Feature.Alias]: { strategy: AliasStrategyType; validator: AliasValidatorType };
     [Feature.NoteLink]: { approval: boolean; strategy: NoteLinkStrategy };
     [Feature.Explorer]: { sort: boolean };
+    [Feature.Suggest]: { insertAlias: boolean };
 };
 export type SettingsFeatureCommon = { enabled: boolean; templates: TemplateValue };
 export type SettingsFeature = {

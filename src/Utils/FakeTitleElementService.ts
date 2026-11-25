@@ -21,10 +21,12 @@ export default class FakeTitleElementService {
 
     removeExcept(id: string | string[]) {
         const ids = Array.isArray(id) ? id : [id];
-        for (const [key, { fake }] of this.elements.entries()) {
+        for (const key of Array.from(this.elements.keys())) {
             if (!ids.includes(key)) {
-                fake.remove();
-                this.elements.delete(key);
+                // Go through remove() so the original title is made visible again.
+                // Dropping the fake on its own leaves the original hidden and the
+                // note ends up with no title at all (#285).
+                this.remove(key);
             }
         }
     }
@@ -37,7 +39,10 @@ export default class FakeTitleElementService {
         const { fake, events = [], original } = this.elements.get(id);
         events.forEach(e => {
             if (e === "click") {
-                original.removeEventListener("click", this.events.blur);
+                // bindClick() listens for "blur", not "click", on the original.
+                // Passing the wrong name here left the handler attached, so every
+                // create/remove cycle stacked another listener on the same element.
+                original.removeEventListener("blur", this.events.blur);
             }
             if (e === "hover") {
                 original.removeEventListener("mouseout", this.events.out);
@@ -67,13 +72,19 @@ export default class FakeTitleElementService {
         if (!container) {
             return;
         }
+        const previous = this.elements.get(id);
+        if (previous && (previous.original !== original || previous.fake.parentElement !== container)) {
+            // A mode change can replace the original or discard its fake. Remove
+            // the old binding before reusing the view's id, including its listeners.
+            this.remove(id);
+        }
         let element = this.find(container, id) as T;
         if (element) {
             element.setText(title);
             return { created: false, element };
         }
 
-        element = document.createElement(original.tagName) as T;
+        element = createEl(original.tagName.toLowerCase() as keyof HTMLElementTagNameMap) as T;
         element.className = original.className;
         element.setText(title);
         element.setAttribute(this.attr.fake, id);
@@ -89,7 +100,7 @@ export default class FakeTitleElementService {
         }
 
         container.insertBefore(element, original);
-        element.hidden = true;
+        this.hide(element);
 
         return { created: true, element };
     }
@@ -97,10 +108,24 @@ export default class FakeTitleElementService {
     public setVisible(id: string, visible: boolean): this {
         if (this.elements.has(id)) {
             const { fake, original } = this.elements.get(id);
-            original.hidden = visible;
-            fake.hidden = !visible;
+            visible ? this.hide(original) : this.show(original);
+            visible ? this.show(fake) : this.hide(fake);
         }
         return this;
+    }
+
+    // Hide via an inline `display:none !important` instead of the `hidden`
+    // attribute. The UA rule `[hidden]{display:none}` has the lowest priority,
+    // so any theme/snippet with a `.inline-title{display:…}` rule un-hides the
+    // original title and the filename shows alongside our title (#280, #234,
+    // #123). An important inline declaration wins the cascade against any
+    // author selector, keeping exactly one title visible.
+    private hide(el: HTMLElement): void {
+        el.style.setProperty("display", "none", "important");
+    }
+
+    private show(el: HTMLElement): void {
+        el.style.removeProperty("display");
     }
 
     private extractId(e: any): string | null {
@@ -138,7 +163,7 @@ export default class FakeTitleElementService {
     private find(container: HTMLElement, id: string): HTMLElement | null {
         for (const node of Array.from(container.children)) {
             const cId = node.getAttribute(this.attr.fake);
-            if (id === cId && node instanceof HTMLElement) {
+            if (id === cId && node.instanceOf(HTMLElement)) {
                 return node;
             }
         }

@@ -14,11 +14,21 @@ import FakeTitleElementService from "@src/Utils/FakeTitleElementService";
 export class CanvasManager extends AbstractManager {
     private ref: ListenerRef<"layout:change"> = null;
     private enabled = false;
+    private generation = 0;
     private queue: Set<string> = new Set();
     private updateByRequestFrame = debounce(
         () => {
             this.logger.log(`updateByRequestFrame`, this.queue);
-            Array.from(this.queue.values()).forEach(e => this.innerUpdate(e) && this.queue.delete(e));
+            // Consume this batch before starting async work. A later frame can queue
+            // the same path again, while closed or empty canvases leave no stale work.
+            const paths = Array.from(this.queue);
+            this.queue.clear();
+            if (!this.enabled) {
+                return;
+            }
+            for (const path of paths) {
+                this.innerUpdate(path).catch(console.error);
+            }
         },
         1000,
         true
@@ -51,15 +61,19 @@ export class CanvasManager extends AbstractManager {
     }
 
     protected doDisable(): void {
+        this.enabled = false;
+        this.generation++;
+        this.queue.clear();
         this.dispatcher.removeListener(this.ref);
         this.fakeTitleElementService.removeAll();
-        this.enabled = false;
     }
 
     protected doEnable(): void {
         this.ref = this.dispatcher.addListener({
             name: "layout:change",
-            cb: () => this.refresh().catch(console.error),
+            cb: () => {
+                this.refresh().catch(console.error);
+            },
         });
         this.enabled = true;
     }
@@ -78,6 +92,7 @@ export class CanvasManager extends AbstractManager {
     }
 
     private async innerUpdate(path: string = null): Promise<boolean> {
+        const generation = this.generation;
         const promises = [];
         this.logger.log(`inner update "${path}"`);
 
@@ -94,8 +109,11 @@ export class CanvasManager extends AbstractManager {
                 }
                 promises.push(
                     this.resolve(node.filePath).then(title => {
+                        if (!this.enabled || generation !== this.generation) {
+                            return;
+                        }
                         if (title) {
-                            this.setNodeTitle(node, title);
+                            return this.setNodeTitle(node, title, generation);
                         } else {
                             this.restoreNodeTitle(node);
                         }
@@ -129,10 +147,18 @@ export class CanvasManager extends AbstractManager {
         this.fakeTitleElementService.remove(ids.inline);
     }
 
-    private async setNodeTitle(node: CanvasNode, title: string | null): Promise<void> {
-        do {
-            await new Promise(resolve => setTimeout(resolve, 200));
-        } while (!node.initialized);
+    private async setNodeTitle(node: CanvasNode, title: string | null, generation: number): Promise<void> {
+        const isCurrent = () =>
+            this.enabled &&
+            generation === this.generation &&
+            this.facade.getViewsOfType<CanvasViewExt>(Leaves.CV).includes(node.canvas.view) &&
+            Array.from(node.canvas.view.canvas.nodes.values()).includes(node);
+        while (!node.initialized && isCurrent()) {
+            await new Promise(resolve => window.setTimeout(resolve, 200));
+        }
+        if (!isCurrent()) {
+            return;
+        }
 
         const view = node.canvas.view;
 
@@ -151,7 +177,7 @@ export class CanvasManager extends AbstractManager {
             this.fakeTitleElementService.setVisible(ids.label, true);
         }
 
-        const inlineTitleEl = node.contentEl?.querySelector(".inline-title") as HTMLElement;
+        const inlineTitleEl = node.contentEl?.querySelector<HTMLElement>(".inline-title");
         const inline = this.fakeTitleElementService.getOrCreate({
             original: inlineTitleEl,
             title,

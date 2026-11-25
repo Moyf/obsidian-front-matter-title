@@ -52,7 +52,9 @@ export default class NoteLinkFeature extends AbstractFeature<Feature> {
         this.refs.push(
             this.dispatcher.addListener<"metadata:cache:changed">({
                 name: "metadata:cache:changed",
-                cb: e => this.requestApprove(e.get().path),
+                cb: e => {
+                    this.requestApprove(e.get().path).catch(console.error);
+                },
             })
         );
         this.enabled = true;

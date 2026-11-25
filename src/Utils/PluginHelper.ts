@@ -21,6 +21,16 @@ export default class PluginHelper {
         return comparator === "=" || comparator === ">=" || comparator === "<=";
     }
 
+    /**
+     * Whether to show the "what's new" notice: only on an actual update (a known
+     * previous version that differs from the current one), never on first install,
+     * and only when there are release notes to show (`hasNotes`) — technical
+     * patches without a CHANGELOG section show nothing.
+     */
+    public static shouldShowReleaseNotice(previous: string | null, current: string, hasNotes: boolean): boolean {
+        return hasNotes && previous !== null && previous !== current;
+    }
+
     public static createDefaultSettings(): SettingsType {
         return {
             version: PLUGIN_VERSION,
@@ -57,7 +67,7 @@ export default class PluginHelper {
                 [Feature.Graph]: { enabled: false, templates: { main: "", fallback: "" } },
                 [Feature.Bookmarks]: { enabled: false, templates: { main: "", fallback: "" } },
                 [Feature.Search]: { enabled: false, templates: { main: "", fallback: "" } },
-                [Feature.Suggest]: { enabled: false, templates: { main: "", fallback: "" } },
+                [Feature.Suggest]: { enabled: false, insertAlias: true, templates: { main: "", fallback: "" } },
                 [Feature.InlineTitle]: { enabled: false, templates: { main: "", fallback: "" } },
                 [Feature.Canvas]: { enabled: false, templates: { main: "", fallback: "" } },
                 [Feature.Backlink]: { enabled: false, templates: { main: "", fallback: "" } },

@@ -50,7 +50,9 @@ export class InlineTitleManager extends AbstractManager {
     protected doEnable(): void {
         this.ref = this.dispatcher.addListener({
             name: "layout:change",
-            cb: () => this.refresh().catch(console.error),
+            cb: () => {
+                this.refresh().catch(console.error);
+            },
         });
         this.enabled = true;
     }
@@ -85,7 +87,14 @@ export class InlineTitleManager extends AbstractManager {
         }
 
         await Promise.all(promises);
-        this.fakeTitleElementService.removeExcept(ids);
+        // Only a full refresh knows the complete set of live elements. A targeted
+        // update sees a single path, so garbage-collecting "everything else" there
+        // wipes the titles of all other open notes — and of every note when the
+        // path belongs to no markdown view at all, e.g. the attachment created by
+        // dropping an image into a note (#285).
+        if (path === null) {
+            this.fakeTitleElementService.removeExcept(ids);
+        }
         return promises.length > 0;
     }
 
@@ -97,14 +106,16 @@ export class InlineTitleManager extends AbstractManager {
         this.logger.log(`Set inline title "${title ?? " "}" for ${view.file.path}`);
         const id = this.getTitleElId(view);
         const original = view.inlineTitleEl;
-        const { created } = this.fakeTitleElementService.getOrCreate({ original, title, id, events: ["click"] });
-        if (created && !original.isActiveElement()) {
+        const result = this.fakeTitleElementService.getOrCreate({ original, title, id, events: ["click"] });
+        if (result && !original.isActiveElement()) {
             this.fakeTitleElementService.setVisible(id, true);
         }
         return id;
     }
 
     private getTitleElId(view: MarkdownViewExt): string {
-        return `${view.getState().mode}-${this.getId()}-${view.leaf.id}`;
+        // Reading and editing modes can share the same original element. Giving
+        // each mode a new id makes cleanup of the old fake reveal the filename.
+        return `${this.getId()}-${view.leaf.id}`;
     }
 }

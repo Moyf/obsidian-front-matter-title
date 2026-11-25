@@ -39,7 +39,7 @@ export default class BookmarksManager extends AbstractFeature<Feature> {
         private logger: LoggerInterface
     ) {
         super();
-        this.requestUpdate = () => setTimeout(this.onChanged.bind(this), 100);
+        this.requestUpdate = () => window.setTimeout(this.onChanged.bind(this), 100);
         this.resolver = service.createResolver(this.getId());
     }
 
@@ -141,7 +141,8 @@ export default class BookmarksManager extends AbstractFeature<Feature> {
         if (!this.view.plugin) {
             return;
         }
-        const items = this.view.plugin.items;
+        // Flatten groups so files nested inside bookmark groups are handled too (#257).
+        const items = this.collectFileItems(this.view.plugin.items);
         const itemDoms = this.view.itemDoms;
         const result: { [k: string]: boolean } = {};
         for (const item of items) {
@@ -158,6 +159,17 @@ export default class BookmarksManager extends AbstractFeature<Feature> {
             }
         }
         return result;
+    }
+
+    private collectFileItems(items: any[], acc: any[] = []): any[] {
+        for (const item of items ?? []) {
+            if (item?.type === "group" && Array.isArray(item.items)) {
+                this.collectFileItems(item.items, acc);
+            } else if (item?.type === "file") {
+                acc.push(item);
+            }
+        }
+        return acc;
     }
 
     private async process(div: Element, path: string): Promise<void> {

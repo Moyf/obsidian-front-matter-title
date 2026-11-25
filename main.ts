@@ -6,7 +6,7 @@ import SettingsTab from "@src/Settings/SettingsTab";
 import Storage from "@src/Storage/Storage";
 import Container from "@config/inversify.config";
 import SI from "@config/inversify.types";
-import { interfaces } from "inversify";
+import { type interfaces } from "inversify";
 import App from "@src/App";
 import { AppEvents } from "@src/Types";
 import { ResolverEvents } from "@src/Resolver/ResolverType";
@@ -25,8 +25,10 @@ import Defer, { DeferFeaturesReady, DeferPluginReady } from "@src/Components/Api
 import EventDispatcherInterface from "@src/Components/EventDispatcher/Interfaces/EventDispatcherInterface";
 import { t } from "@src/i18n/Locale";
 import { Migrator } from "@src/Migrator/Migrator";
+import ReleaseNoticeModal from "@src/Modal/ReleaseNoticeModal";
 
 declare const PLUGIN_VERSION: string;
+declare const PLUGIN_WHATS_NEW: string;
 export default class MetaTitlePlugin extends Plugin implements PluginInterface {
     private dispatcher: EventDispatcherInterface<AppEvents & ResolverEvents & SettingsEvent>;
     private container: interfaces.Container = Container;
@@ -34,6 +36,7 @@ export default class MetaTitlePlugin extends Plugin implements PluginInterface {
     private logger: LoggerInterface;
     private fc: FeatureComposer;
     private mc: ManagerComposer;
+    private previousVersion: string | null = null;
 
     public getDefer(): Defer {
         return this.container.get(SI.defer);
@@ -50,9 +53,24 @@ export default class MetaTitlePlugin extends Plugin implements PluginInterface {
         new App(); //replace with static
         this.container.getAllNamed<ListenerInterface>(SI.listener, "unnamed").map(e => e.bind());
         await this.loadSettings();
-        this.app.workspace.onLayoutReady(() => this.getDefer().setFlag(DeferPluginReady));
+        this.app.workspace.onLayoutReady(() => {
+            this.getDefer().setFlag(DeferPluginReady);
+            this.maybeShowReleaseNotice();
+        });
 
         await this.delay();
+    }
+
+    private maybeShowReleaseNotice(): void {
+        // Skip the notice for releases without changelog notes (e.g. purely
+        // technical/maintenance patches) — there is nothing to announce.
+        const hasNotes = typeof PLUGIN_WHATS_NEW === "string" && PLUGIN_WHATS_NEW.trim().length > 0;
+        if (!PluginHelper.shouldShowReleaseNotice(this.previousVersion, PLUGIN_VERSION, hasNotes)) {
+            return;
+        }
+        new ReleaseNoticeModal(this.app, PLUGIN_VERSION).open();
+        // Persist the current version so the notice is shown only once per update.
+        this.saveData(this.storage.collect()).catch(e => this.logger?.log(e));
     }
 
     public onunload() {
@@ -61,6 +79,9 @@ export default class MetaTitlePlugin extends Plugin implements PluginInterface {
 
     private async loadSettings(): Promise<void> {
         const loaded = await this.loadData();
+        // Remember the previously installed version (null on a fresh install) to
+        // decide whether to show the "what's new" notice after an update.
+        this.previousVersion = loaded ? loaded.version ?? "0.0.0" : null;
         if (loaded && !loaded.version) {
             loaded.version = "0.0.0";
         }
@@ -84,7 +105,7 @@ export default class MetaTitlePlugin extends Plugin implements PluginInterface {
         const showNotice = this.storage.get("boot").get("showNotice").value();
         this.logger.log(`Plugin manual delay ${delay}`);
         let promise: Promise<void> = new Promise<void>(resolve =>
-            setTimeout(() => {
+            window.setTimeout(() => {
                 this.fc = Container.get(SI["feature:composer"]);
                 this.mc = Container.get(SI["manager:composer"]);
                 this.bind();
@@ -143,17 +164,29 @@ export default class MetaTitlePlugin extends Plugin implements PluginInterface {
                     this.dispatcher.dispatch("file:rename", new Event({ old, actual }))
                 )
             );
-            await new Promise(r => setTimeout(r, 3000));
+            this.registerEvent(
+                // after workspace.onLayoutReady, "create" is only called for new files.
+                // (it's called for *all* files on startup, before layout is ready.)
+                this.app.vault.on("create", ({ path }) => this.mc.update(path).catch(console.error))
+            );
+            await new Promise(r => window.setTimeout(r, 3000));
             this.reloadFeatures();
             await this.mc.refresh();
             this.getDefer().setFlag(DeferFeaturesReady);
         });
         this.dispatcher.addListener({
             name: "resolver:unresolved",
-            cb: e => this.mc.update(e.get().path).catch(console.error),
+            cb: e => {
+                this.mc.update(e.get().path).catch(console.error);
+            },
         });
 
-        this.dispatcher.addListener({ name: "settings:changed", cb: e => this.onSettingsChange(e.get().actual) });
+        this.dispatcher.addListener({
+            name: "settings:changed",
+            cb: e => {
+                this.onSettingsChange(e.get().actual).catch(console.error);
+            },
+        });
     }
 
     private reloadFeatures(): void {

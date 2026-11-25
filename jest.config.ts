@@ -1,11 +1,11 @@
-import { Config } from "@jest/types";
+import type { Config } from "jest";
 
-const config: Config.InitialOptions = {
+const config: Config = {
     preset: "ts-jest",
     testEnvironment: "node",
-    moduleDirectories: ["node_modules", __dirname],
+    moduleDirectories: ["node_modules", "<rootDir>"],
     bail: true,
-    setupFilesAfterEnv: ["<rootDir>/jest.setup.ts"],
+    setupFilesAfterEnv: ["<rootDir>/jest.setup.ts", "<rootDir>/test/setup/window.ts"],
     cacheDirectory: "<rootDir>/var/cache",
     maxWorkers: 5,
     moduleNameMapper: {

@@ -59,7 +59,7 @@ declare module "obsidian" {
         sortOrder: string;
         requestSort: () => void;
 
-        getSortedFolderItems: (TFolder) => TFileExplorerItem[];
+        getSortedFolderItems: (folder: TFolder) => TFileExplorerItem[];
 
         getDisplayText(): string;
 
@@ -127,10 +127,16 @@ declare module "obsidian" {
 
     export abstract class Backlink {
         backlinkDom: SearchDOM;
+        unlinkedDom: SearchDOM;
     }
 
     export abstract class Chooser {
         setSuggestions(e: any): any;
+        renderSuggestions(): void;
+        addSuggestion(item: SuggestModalChooserFileItem): void;
+        chooser?: {
+            renderSuggestion(item: SuggestModalChooserFileItem, el: HTMLElement): void;
+        };
     }
 
     export interface SuggestModalChooserFileItem {

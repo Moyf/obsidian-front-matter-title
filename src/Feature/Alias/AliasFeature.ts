@@ -53,7 +53,9 @@ export class AliasFeature extends AbstractFeature<Feature> {
     enable(): void {
         this.ref = this.dispatcher.addListener({
             name: "metadata:cache:changed",
-            cb: e => this.update(e.get().path, e.get().cache),
+            cb: e => {
+                this.update(e.get().path, e.get().cache).catch(console.error);
+            },
         });
         this.setValidator(this.config.getValidator());
         this.setStrategy(this.config.getStrategy());

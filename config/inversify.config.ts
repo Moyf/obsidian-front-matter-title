@@ -54,7 +54,7 @@ Container.bind<LoggerInterface>(SI.logger)
     .toDynamicValue(context => {
         return context.container
             .get<LoggerComposer>(SI["logger:composer"])
-            .create(context.currentRequest.target.getNamedTag().value);
+            .create(String(context.currentRequest.target.getNamedTag().value));
     })
     .when(() => true);
 
@@ -72,7 +72,7 @@ Container.load(resolverModule);
 Container.load(apiAdapterModule);
 
 Container.bind(SI["factory:replacer"]).toFunction((t: any, m: any, a: unknown, i: any) =>
-    FunctionReplacer.create(t, m, a, i)
+    FunctionReplacer.tryCreate(t, m, a, i)
 );
 Container.bind(SI["service:search:dom:wrapper"]).to(SearchDomWrapperService).inSingletonScope();
 

@@ -1,5 +1,5 @@
-import { Container as K, interfaces } from "inversify";
-import Container = interfaces.Container;
+import { type interfaces } from "inversify";
+type Container = interfaces.Container;
 import SI from "@config/inversify.types";
 import DefaultBuilder from "@src/Settings/FeatureBuilder/DefaultBuilder";
 import AliasBuilder from "@src/Settings/FeatureBuilder/AliasBuilder";
@@ -15,12 +15,14 @@ import ProcessorBuilder from "../../src/Settings/SettingBuilders/Processor/Proce
 import NoteLinkBuilder from "@src/Settings/FeatureBuilder/NoteLinkBuilder";
 import ExplorerBuilder from "@src/Settings/FeatureBuilder/ExplorerBuilder";
 import RulesSkipSameTitleBuilder from "@src/Settings/SettingBuilders/Rules/RulesSkipSameTitleBuilder";
+import SuggestBuilder from "@src/Settings/FeatureBuilder/SuggestBuilder";
 
 export default (c: Container) => {
     c.bind(SI["settings:feature:builder"]).to(DefaultBuilder).whenTargetNamed("default");
     c.bind(SI["settings:feature:builder"]).to(AliasBuilder).whenTargetNamed(Feature.Alias);
     c.bind(SI["settings:feature:builder"]).to(ExplorerBuilder).whenTargetNamed(Feature.Explorer);
     c.bind(SI["settings:feature:builder"]).to(NoteLinkBuilder).whenTargetNamed(Feature.NoteLink);
+    c.bind(SI["settings:feature:builder"]).to(SuggestBuilder).whenTargetNamed(Feature.Suggest);
     c.bind<SettingsFeatureBuildFactory>(SI["factory:settings:feature:builder"]).toFunction((name: string) =>
         c.isBoundNamed(SI["settings:feature:builder"], name) ? c.getNamed(SI["settings:feature:builder"], name) : null
     );

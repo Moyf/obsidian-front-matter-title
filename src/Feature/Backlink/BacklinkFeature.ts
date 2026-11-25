@@ -38,7 +38,7 @@ export default class BacklinkFeature extends AbstractFeature<Feature> {
         this.resolver = service.createResolver(this.getId());
         this.dProcess = () => {
             if (this.timer) {
-                clearTimeout(this.timer);
+                window.clearTimeout(this.timer);
             }
             this.timer = window.setTimeout(this.process.bind(this), 50);
         };
@@ -103,6 +103,9 @@ export default class BacklinkFeature extends AbstractFeature<Feature> {
         const view = this.facade.getViewsOfType<BacklinkViewExt>(Leaves.BL)[0] ?? null;
         if (view?.backlink?.backlinkDom) {
             this.mutateService.wrapDom(view.backlink.backlinkDom, this.resolver, this.getId());
+        }
+        if (view?.backlink?.unlinkedDom) {
+            this.mutateService.wrapDom(view.backlink.unlinkedDom, this.resolver, this.getId());
         }
         this.isBacklinkWrapped = true;
     }

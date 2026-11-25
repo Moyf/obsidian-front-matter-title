@@ -107,6 +107,9 @@ export default class GraphManager extends AbstractManager {
                     return text ?? vanilla.call(this, ...defaultArgs);
                 }
             );
+            if (!this.replacement) {
+                return false;
+            }
             this.replacement.enable();
             this.refresh().catch(console.error);
             return true;
@@ -118,7 +121,7 @@ export default class GraphManager extends AbstractManager {
     }
 
     private runBackgroundInit(): void {
-        setTimeout(async () => {
+        window.setTimeout(() => {
             this.logger.log("init by backgroundInit");
             this.initReplacement();
         }, 200);

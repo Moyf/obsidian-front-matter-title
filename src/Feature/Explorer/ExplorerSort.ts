@@ -17,7 +17,7 @@ import { FunctionReplacerFactory } from "@config/inversify.factory.types";
 export default class ExplorerSort {
     private view: TFileExplorerView;
     private started = false;
-    private replacer: FunctionReplacer<TFileExplorerView, "getSortedFolderItems", ExplorerSort>;
+    private replacer: FunctionReplacer<TFileExplorerView, "getSortedFolderItems", ExplorerSort> | null;
     private readonly cb: (e: { id: string; result?: boolean }) => void;
     private refs: [ListenerRef<"manager:refresh">?, ListenerRef<"manager:update">?] = [];
     private resolver: ResolverInterface;
@@ -42,15 +42,20 @@ export default class ExplorerSort {
         this.resolver = service.createResolver(Feature.Explorer);
         const trigger = debounce(this.onManagerUpdate.bind(this), 1000);
         this.cb = e => {
-            if (e.id === Feature.Explorer && (e.result === true || e.result === undefined)) {
+            // The public event contract carries the feature id as a plain string, so
+            // compare against the enum's value rather than the member itself.
+            if (e.id === String(Feature.Explorer) && (e.result === true || e.result === undefined)) {
                 trigger();
             }
         };
     }
 
-    public start(): void {
+    public start(view: TFileExplorerView = null): void {
         if (this.isStarted()) {
             return;
+        }
+        if (view) {
+            this.view = view;
         }
         if (!this.view && (this.initView(), !this.view)) {
             throw new ExplorerViewUndefined();
@@ -74,6 +79,8 @@ export default class ExplorerSort {
         this.refs = [];
         this.replacer?.disable();
         this.view?.requestSort();
+        this.replacer = null;
+        this.view = null;
         this.logger.log("disabled");
     }
 
@@ -113,10 +120,20 @@ export default class ExplorerSort {
             Object.getPrototypeOf(this.view),
             "getSortedFolderItems",
             this,
-            (feature, defaultArgs, vanilla) => {
-                return feature.getSortedFolderItems(defaultArgs?.[0]) ?? vanilla.call(this);
+            // Regular function (not an arrow) so `this` is the file-explorer view
+            // at call time. For unsupported sort orders (e.g. by created/modified
+            // time) the feature returns null and we defer to Obsidian's native
+            // sort, forwarding the original args (the folder) AND the view `this`
+            // — otherwise native getSortedFolderItems reads this.fileItems on the
+            // wrong object and time-sort breaks (#262).
+            function (feature, defaultArgs, vanilla) {
+                return feature.getSortedFolderItems(defaultArgs?.[0]) ?? vanilla.apply(this, defaultArgs);
             }
         );
+        if (!this.replacer) {
+            this.logger.log("Could not patch getSortedFolderItems (Obsidian API changed). Sort feature degraded.");
+            return;
+        }
         this.replacer.enable();
     }
 
@@ -129,6 +146,10 @@ export default class ExplorerSort {
     }
 
     private getSortedFolderItems(folder: TFolder): TFileExplorerItem[] | null {
+        if (!this.view?.fileItems) {
+            this.logger.log("Explorer view has no fileItems (Obsidian API changed). Skipped.");
+            return null;
+        }
         const sortOrder = this.view.sortOrder;
 
         if (!this.isSortSupported(sortOrder)) {

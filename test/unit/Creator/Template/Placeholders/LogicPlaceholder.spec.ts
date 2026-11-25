@@ -1,6 +1,7 @@
 import LogicPlaceholder from "@src/Creator/Template/Placeholders/LogicPlaceholder";
 import { TemplatePlaceholderFactoryInterface, TemplatePlaceholderInterface } from "@src/Creator/Interfaces";
 import { mock } from "jest-mock-extended"; // Import your actual interfaces
+import PathNotFoundException from "@src/Components/Extractor/Exceptions/PathNotFoundException";
 
 // Create mock implementations for the interfaces
 const mockFactory = mock<TemplatePlaceholderFactoryInterface>();
@@ -64,5 +65,32 @@ describe("LogicPlaceholder", () => {
         expect(child1.makeValue).toHaveBeenCalledWith(path);
         expect(child2.makeValue).toHaveBeenCalledWith(path);
         expect(child3.makeValue).not.toHaveBeenCalled(); // It should short-circuit after finding a non-null value
+    });
+
+    it("continues after a missing key", () => {
+        const missing = mock<TemplatePlaceholderInterface>();
+        const heading = mock<TemplatePlaceholderInterface>();
+        missing.makeValue.mockImplementation(() => {
+            throw new PathNotFoundException("Key title not found");
+        });
+        heading.makeValue.mockReturnValue("Heading");
+        mockFactory.create.mockReturnValueOnce(missing).mockReturnValueOnce(heading);
+        logicPlaceholder.setPlaceholder("title|#heading");
+
+        expect(logicPlaceholder.makeValue("note.md")).toBe("Heading");
+    });
+
+    it("propagates unexpected errors instead of hiding them with a fallback", () => {
+        const broken = mock<TemplatePlaceholderInterface>();
+        const heading = mock<TemplatePlaceholderInterface>();
+        const error = new Error("metadata unavailable");
+        broken.makeValue.mockImplementation(() => {
+            throw error;
+        });
+        mockFactory.create.mockReturnValueOnce(broken).mockReturnValueOnce(heading);
+        logicPlaceholder.setPlaceholder("title|#heading");
+
+        expect(() => logicPlaceholder.makeValue("note.md")).toThrow(error);
+        expect(heading.makeValue).not.toHaveBeenCalled();
     });
 });
